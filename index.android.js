@@ -2,9 +2,10 @@ import React from 'react'
 import {
   AppRegistry,
   StyleSheet,
-  Text,
+  Button,
   View,
 } from 'react-native'
+import Toast from './src/Nfc'
 
 const styles = StyleSheet.create({
   container: {
@@ -25,18 +26,18 @@ const styles = StyleSheet.create({
   },
 })
 
+function showToast() {
+  Toast.show('Hello world!', Toast.SHORT)
+}
+
 const MyApp = () => (
   <View style={styles.container}>
-    <Text style={styles.welcome}>
-      Welcome to React Native!
-    </Text>
-    <Text style={styles.instructions}>
-      To get started, edit index.android.js
-    </Text>
-    <Text style={styles.instructions}>
-      Double tap R on your keyboard to reload,{'\n'}
-      Shake or press menu button for dev menu
-    </Text>
+    <Button
+      onPress={showToast}
+      title="Learn More"
+      color="#841584"
+      accessibilityLabel="Learn more about this purple button"
+    />
   </View>
 )
 
