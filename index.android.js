@@ -4,8 +4,8 @@ import {
   StyleSheet,
   Button,
   View,
+  Alert,
 } from 'react-native'
-import Toast from './src/Nfc'
 
 const styles = StyleSheet.create({
   container: {
@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
 })
 
 function showToast() {
-  Toast.show('Hello world!', Toast.SHORT)
+  Alert.alert('Hello world!')
 }
 
 const MyApp = () => (
