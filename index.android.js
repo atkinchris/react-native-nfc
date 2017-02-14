@@ -4,8 +4,9 @@ import {
   StyleSheet,
   Button,
   View,
-  Alert,
+  Text,
 } from 'react-native'
+import Nfc from './src/Nfc'
 
 const styles = StyleSheet.create({
   container: {
@@ -26,20 +27,35 @@ const styles = StyleSheet.create({
   },
 })
 
-function showToast() {
-  Alert.alert('Hello world!')
-}
 
-const MyApp = () => (
-  <View style={styles.container}>
-    <Button
-      onPress={showToast}
-      title="Learn More"
-      color="#841584"
-      accessibilityLabel="Learn more about this purple button"
-    />
-  </View>
-)
+class MyApp extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {}
+    this.showToast = this.showToast.bind(this)
+  }
+
+  showToast() {
+    Nfc.getUID()
+    .then(uid => this.setState({ uid }))
+    .catch(error => this.setState({ error }))
+  }
+
+  render() {
+    return (
+      <View style={styles.container}>
+        <Text>{ this.state.uid || 'No UID' }</Text>
+        <Text>{ this.state.error || 'No Error' }</Text>
+        <Button
+          onPress={this.showToast}
+          title="Show me the message!"
+          color="#841584"
+          accessibilityLabel="Learn more about this purple button"
+        />
+      </View>
+    )
+  }
+}
 
 export default MyApp
 
