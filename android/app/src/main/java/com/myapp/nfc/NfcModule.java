@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.MifareUltralight;
-import android.nfc.tech.NfcA;
 import android.os.Vibrator;
 
 import com.facebook.react.bridge.ActivityEventListener;
@@ -38,6 +37,8 @@ public class NfcModule extends ReactContextBaseJavaModule implements ActivityEve
 
         reactContext.addActivityEventListener(this);
         reactContext.addLifecycleEventListener(this);
+
+        setupForegroundDispatch();
     }
 
     @Override
@@ -53,16 +54,24 @@ public class NfcModule extends ReactContextBaseJavaModule implements ActivityEve
         return "Nfc";
     }
 
-    private static void setupForegroundDispatch(final Activity activity, NfcAdapter adapter) {
+    private void setupForegroundDispatch() {
+        if (mNfcAdapter == null) {
+            mNfcAdapter = NfcAdapter.getDefaultAdapter(this.reactContext);
+        }
+
+        Activity activity = getCurrentActivity();
+
         final Intent intent = new Intent(activity.getApplicationContext(), activity.getClass());
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
         final PendingIntent pendingIntent = PendingIntent.getActivity(activity.getApplicationContext(), 0, intent, 0);
-        adapter.enableForegroundDispatch(activity, pendingIntent, null, null);
+        mNfcAdapter.enableForegroundDispatch(activity, pendingIntent, null, null);
     }
 
-    private static void stopForegroundDispatch(final Activity activity, NfcAdapter adapter) {
-        adapter.disableForegroundDispatch(activity);
+    private void stopForegroundDispatch() {
+        if (mNfcAdapter != null) {
+            mNfcAdapter.disableForegroundDispatch(getCurrentActivity());
+        }
     }
 
     private void emitEvent(String eventName, Object data) {
@@ -79,18 +88,12 @@ public class NfcModule extends ReactContextBaseJavaModule implements ActivityEve
 
     @Override
     public void onHostResume() {
-        if (mNfcAdapter != null) {
-            setupForegroundDispatch(getCurrentActivity(), mNfcAdapter);
-        } else {
-            mNfcAdapter = NfcAdapter.getDefaultAdapter(this.reactContext);
-        }
+        setupForegroundDispatch();
     }
 
     @Override
     public void onHostPause() {
-        if (mNfcAdapter != null) {
-            stopForegroundDispatch(getCurrentActivity(), mNfcAdapter);
-        }
+        stopForegroundDispatch();
     }
 
     @Override
