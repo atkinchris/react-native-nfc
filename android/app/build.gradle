@@ -1,15 +1,12 @@
 apply plugin: "com.android.application"
 
-import com.android.build.OutputFile
-
 apply from: "../../node_modules/react-native/react.gradle"
 
-def enableSeparateBuildPerCPUArchitecture = true
 def enableProguardInReleaseBuilds = false
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.1"
+    buildToolsVersion "23.0.2"
 
     defaultConfig {
         applicationId "com.myapp"
@@ -41,5 +38,6 @@ android {
 dependencies {
     compile fileTree(dir: "libs", include: ["*.jar"])
     compile "com.android.support:appcompat-v7:23.0.1"
+    //noinspection GradleDynamicVersion
     compile "com.facebook.react:react-native:+"
 }
