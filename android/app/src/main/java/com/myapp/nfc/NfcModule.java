@@ -6,23 +6,31 @@ import android.content.Context;
 import android.content.Intent;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
+import android.nfc.tech.MifareUltralight;
+import android.nfc.tech.NfcA;
 import android.os.Vibrator;
 
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.LifecycleEventListener;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
+import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class NfcModule extends ReactContextBaseJavaModule implements ActivityEventListener, LifecycleEventListener {
-    private static final String ON_SUCCESS = "ON_SUCCESS";
-    private static final String ON_FAILURE = "ON_FAILURE";
-    private ReactApplicationContext reactContext;
+    private static final String TAG_NOT_PRESENT = "TAG_NOT_PRESENT";
+    private static final String TAG_EXCEPTION = "TAG_EXCEPTION";
 
+    private static final String ON_TAG_PRESENT = "ON_TAG_PRESENT";
+    private static final String ON_FAILURE = "ON_FAILURE";
+
+    private ReactApplicationContext reactContext;
     private NfcAdapter mNfcAdapter;
+    private MifareUltralight tag;
 
     public NfcModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -35,7 +43,7 @@ public class NfcModule extends ReactContextBaseJavaModule implements ActivityEve
     @Override
     public Map<String, Object> getConstants() {
         final Map<String, Object> constants = new HashMap<>();
-        constants.put(ON_SUCCESS, ON_SUCCESS);
+        constants.put(ON_TAG_PRESENT, ON_TAG_PRESENT);
         constants.put(ON_FAILURE, ON_FAILURE);
         return constants;
     }
@@ -104,11 +112,31 @@ public class NfcModule extends ReactContextBaseJavaModule implements ActivityEve
         try {
             Tag tagFromIntent = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 
+            tag = MifareUltralight.get(tagFromIntent);
+
             byte[] id = tagFromIntent.getId();
 
-            emitEvent(ON_SUCCESS, bytesToHex(id));
+            emitEvent(ON_TAG_PRESENT, bytesToHex(id));
         } catch (Exception e) {
+            tag = null;
             emitEvent(ON_FAILURE, e.toString());
+        }
+    }
+
+    @ReactMethod
+    public void getPage(int offset, final Promise promise) {
+        if (tag == null) {
+            promise.reject(TAG_NOT_PRESENT, "Tag not present");
+        }
+
+        try {
+            tag.connect();
+            byte[] data = tag.readPages(offset);
+            tag.close();
+
+            promise.resolve(bytesToHex(data));
+        } catch (Exception e) {
+            promise.reject(TAG_EXCEPTION, e);
         }
     }
 }

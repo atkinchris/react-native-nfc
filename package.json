@@ -5,6 +5,8 @@
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
     "build": "cd android; ./gradlew assembleRelease; open app/build/outputs/apk",
+    "install-android": "adb install -r android/app/build/outputs/apk/app-release.apk",
+    "run-android": "react-native run-android",
     "keygen-debug": "keytool -genkey -v -keystore android/app/debug.keystore -storepass android -alias androiddebugkey -keypass android -dname \"CN=Android Debug,O=Android,C=US\"",
     "lint-java": "cd android; ./gradlew lint; open app/build/outputs/lint-results.html",
     "test": "jest"
