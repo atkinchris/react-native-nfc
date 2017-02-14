@@ -10,16 +10,18 @@ import android.os.Vibrator;
 
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.LifecycleEventListener;
-import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
-import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class NfcModule extends ReactContextBaseJavaModule implements ActivityEventListener, LifecycleEventListener {
-    private static final String E_INVALID_TAG_INTENT = "E_INVALID_TAG_INTENT";
+    private static final String ON_SUCCESS = "ON_SUCCESS";
+    private static final String ON_FAILURE = "ON_FAILURE";
     private ReactApplicationContext reactContext;
 
-    private Promise mPickerPromise;
     private NfcAdapter mNfcAdapter;
 
     public NfcModule(ReactApplicationContext reactContext) {
@@ -31,13 +33,16 @@ public class NfcModule extends ReactContextBaseJavaModule implements ActivityEve
     }
 
     @Override
-    public String getName() {
-        return "Nfc";
+    public Map<String, Object> getConstants() {
+        final Map<String, Object> constants = new HashMap<>();
+        constants.put(ON_SUCCESS, ON_SUCCESS);
+        constants.put(ON_FAILURE, ON_FAILURE);
+        return constants;
     }
 
-    @ReactMethod
-    public void getUID(Promise promise) {
-        mPickerPromise = promise;
+    @Override
+    public String getName() {
+        return "Nfc";
     }
 
     private static void setupForegroundDispatch(final Activity activity, NfcAdapter adapter) {
@@ -50,6 +55,18 @@ public class NfcModule extends ReactContextBaseJavaModule implements ActivityEve
 
     private static void stopForegroundDispatch(final Activity activity, NfcAdapter adapter) {
         adapter.disableForegroundDispatch(activity);
+    }
+
+    private void emitEvent(String eventName, Object data) {
+        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventName, data);
+    }
+
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02X ", b));
+        }
+        return sb.toString();
     }
 
     @Override
@@ -84,14 +101,14 @@ public class NfcModule extends ReactContextBaseJavaModule implements ActivityEve
         long[] duration = { 50, 100, 200, 300 };
         vib.vibrate(duration, -1);
 
-        if (mPickerPromise != null) {
+        try {
             Tag tagFromIntent = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 
-            if (tagFromIntent != null) {
-                mPickerPromise.resolve(tagFromIntent.getId());
-            } else {
-                mPickerPromise.reject(E_INVALID_TAG_INTENT, "Could not read tag from intent");
-            }
+            byte[] id = tagFromIntent.getId();
+
+            emitEvent(ON_SUCCESS, bytesToHex(id));
+        } catch (Exception e) {
+            emitEvent(ON_FAILURE, e.toString());
         }
     }
 }
