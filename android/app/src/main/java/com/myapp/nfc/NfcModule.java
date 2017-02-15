@@ -68,14 +68,6 @@ public class NfcModule extends ReactContextBaseJavaModule implements ActivityEve
         reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventName, data);
     }
 
-    private String bytesToHex(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            sb.append(String.format("%02X ", b));
-        }
-        return sb.toString();
-    }
-
     @Override
     public void onHostResume() {
         if (mNfcAdapter == null) {
@@ -115,7 +107,7 @@ public class NfcModule extends ReactContextBaseJavaModule implements ActivityEve
 
             byte[] id = tagFromIntent.getId();
 
-            emitEvent(ON_TAG_PRESENT, bytesToHex(id));
+            emitEvent(ON_TAG_PRESENT, ByteHelpers.bytesToHex(id));
         } catch (Exception e) {
             tag = null;
             emitEvent(ON_FAILURE, e.toString());
@@ -133,7 +125,7 @@ public class NfcModule extends ReactContextBaseJavaModule implements ActivityEve
             byte[] data = tag.readPages(offset);
             tag.close();
 
-            promise.resolve(bytesToHex(data));
+            promise.resolve(ByteHelpers.bytesToHex(data));
         } catch (Exception e) {
             promise.reject(TAG_EXCEPTION, e);
         }
