@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.MifareUltralight;
-import android.nfc.tech.NfcA;
 import android.os.Vibrator;
 
 import com.facebook.react.bridge.ActivityEventListener;
@@ -79,11 +78,11 @@ public class NfcModule extends ReactContextBaseJavaModule implements ActivityEve
 
     @Override
     public void onHostResume() {
-        if (mNfcAdapter != null) {
-            setupForegroundDispatch(getCurrentActivity(), mNfcAdapter);
-        } else {
+        if (mNfcAdapter == null) {
             mNfcAdapter = NfcAdapter.getDefaultAdapter(this.reactContext);
         }
+
+        setupForegroundDispatch(getCurrentActivity(), mNfcAdapter);
     }
 
     @Override
